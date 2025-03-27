@@ -11,6 +11,23 @@ const NewBook = () => {
 
   const [addBook] = useMutation(ADD_BOOK, {
     refetchQueries: [{ query: ALL_BOOKS }],
+    update(cache, response) {
+      cache.modify({
+        fields: {
+          allBooks(existingBooks = [], { readField }) {
+            if (
+              existingBooks.some(
+                (book) => readField('id', book) === response.data.addBook.id
+              )
+            ) {
+              return existingBooks
+            }
+
+            return [...existingBooks, response.data.addBook]
+          },
+        },
+      })
+    },
   })
 
   const submit = async (event) => {
