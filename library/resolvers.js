@@ -32,14 +32,10 @@ const resolvers = {
       const books = await Book.find({})
       return [...new Set(books.flatMap((book) => book.genres))]
     },
-    allAuthors: async () => Author.find({}),
-    me: (root, args, context) => context.currentUser,
-  },
-
-  Author: {
-    bookCount: async (root) => {
-      return Book.collection.countDocuments({ author: root._id })
+    allAuthors: async () => {
+      return Author.find({}).populate('bookCount')
     },
+    me: (root, args, context) => context.currentUser,
   },
 
   Mutation: {

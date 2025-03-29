@@ -4,8 +4,9 @@ import Books from './components/Books'
 import NewBook from './components/NewBook'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import LoginForm from './components/LoginForm'
-import { useApolloClient } from '@apollo/client'
+import { useApolloClient, useSubscription } from '@apollo/client'
 import Recommended from './components/Recommended'
+import { BOOK_ADDED } from './queries'
 
 const App = () => {
   const [token, setToken] = useState(null)
@@ -19,6 +20,29 @@ const App = () => {
       setToken(storedToken)
     }
   }, [])
+
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data, client }) => {
+      const addedBook = data.data.bookAdded
+      alert(`${addedBook.title} was added`)
+
+      client.cache.modify({
+        fields: {
+          allBooks(existingBooks = [], { readField }) {
+            if (
+              existingBooks.some(
+                (book) => readField('id', book) === addedBook.id
+              )
+            ) {
+              return existingBooks
+            }
+
+            return [...existingBooks, addedBook]
+          },
+        },
+      })
+    },
+  })
 
   const logout = () => {
     setToken(null)
